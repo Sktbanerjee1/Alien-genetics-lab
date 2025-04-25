@@ -26,17 +26,6 @@ Interactive DNA Day activity for middle schoolers that simulates inheritance of 
 
 ---
 
-## 🌐 Hosting on GitHub Pages
-
-1. Push your code to a GitHub repository (e.g., `alien-genetics-lab`).
-2. In your repo settings, under **Pages**, select the `main` branch and **root** folder.
-3. Save. Your site will publish at:
-   ```
-   https://your-username.github.io/alien-genetics-lab/
-   ```
-
----
-
 ## 🤝 Acknowledgements
 
 Activity adapted from [WeAreTeachers – Genetics Baby Aliens](https://www.weareteachers.com/genetics-baby-aliens/).
