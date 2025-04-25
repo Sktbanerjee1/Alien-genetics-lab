@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Baby Alien Genetics Lab</title>
+  <!-- Bootstrap CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body {
+      /* Background with baby alien images */
+      background-color: #f7fafd;
+      background-image: url('https://img.icons8.com/doodle/100/000000/alien.png'), url('https://img.icons8.com/doodle/100/000000/alien.png');
+      background-position: top left, bottom right;
+      background-repeat: no-repeat, no-repeat;
+      background-size: 80px 80px, 80px 80px;
+      padding: 2rem;
+    }
+    h1, h2 { text-align: center; margin-top: 0; }
+    #flipBtn, #replayBtn { margin: 1rem 0.5rem; }
+    #score { text-align: center; font-size: 1.2rem; margin-top: 1rem; }
+    #flipResult { display: none; margin-top: 1rem; }
+    .sidebar { background: #fff; padding: 1rem; border-radius: 4px; box-shadow: 0 0 5px rgba(0,0,0,0.1); }
+    .sidebar ul { columns: 2; column-gap: 1rem; padding-left: 0; }
+    .sidebar li { margin-bottom: 1rem; list-style: none; }
+    .sidebar li strong { display: block; margin-bottom: 0.25rem; }
+    .feedback { margin-top: 0.5rem; font-weight: bold; }
+    .feedback.correct { color: green; }
+    .feedback.incorrect { color: red; }
+    .child-gen { font-weight: bold; }
+    .info-icon { cursor: help; margin-left: 4px; color: #007bff; }
+    .flip-card { background-color: transparent; width: 100%; perspective: 1000px; margin-bottom: 1rem; }
+    .flip-card-inner { position: relative; width: 100%; height: 200px; text-align: center; transition: transform 0.6s; transform-style: preserve-3d; }
+    .flip-card:hover .flip-card-inner { transform: rotateY(180deg); }
+    .flip-card-front, .flip-card-back { position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: 0.25rem; }
+    .flip-card-front { background: #ffffff; display: flex; align-items: center; justify-content: center; }
+    .flip-card-back { background: #007bff; color: white; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; padding: 1rem; }
+    footer { text-align: center; margin-top: 2rem; font-size: 0.9rem; }
+    footer a { color: #007bff; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Theory flip-cards for middle schoolers -->
+    <div class="row mb-4">
+      <!-- first three cards -->
+      <div class="col-md-4">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><h5>What is an Allele?</h5></div>
+            <div class="flip-card-back"><p>An allele is a version of a gene. Uppercase means dominant, lowercase means recessive.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><h5>Genotype vs Phenotype</h5></div>
+            <div class="flip-card-back"><p>Genotype is the genetic code (letters), phenotype is the physical trait you see.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><h5>Dominant & Recessive</h5></div>
+            <div class="flip-card-back"><p>Dominant traits show if at least one uppercase allele exists; recessive only if both are lowercase.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row mb-4">
+      <!-- next three cards -->
+      <div class="col-md-4">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><h5>Heterozygous vs Homozygous</h5></div>
+            <div class="flip-card-back"><p>Heterozygous means two different alleles (Ee), homozygous means two same (EE or ee).</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><h5>Punnett Squares</h5></div>
+            <div class="flip-card-back"><p>A chart showing all possible allele combinations from parents.</p></div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="flip-card">
+          <div class="flip-card-inner">
+            <div class="flip-card-front"><h5>Probability</h5></div>
+            <div class="flip-card-back"><p>Each coin toss is random; dominant allele probability is 75% if both parents are heterozygous.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <h1 class="mb-3">🛸 Baby Alien Genetics Lab</h1>
+    <p class="text-center">Parents are heterozygous for every trait. Flip coins to build child genotypes, then choose phenotypes.</p>
+    <div id="flipResult" class="alert alert-info text-center"></div>
+    <div id="score">Score: 0</div>
+    <div class="text-center">
+      <button id="flipBtn" class="btn btn-primary">Flip Coins for Next Trait</button>
+      <button id="replayBtn" class="btn btn-secondary" disabled>Replay</button>
+    </div>
+    <div class="row mt-4">
+      <div class="col-md-8">
+        <table id="geneticsTable" class="table table-bordered table-hover">
+          <thead class="thead-light">
+            <tr>
+              <th>Trait <span class="info-icon" title="The specific characteristic being inherited">ℹ️</span></th>
+              <th>Mom Genotype <span class="info-icon" title="Mother's alleles (uppercase=dominant, lowercase=recessive)">ℹ️</span></th>
+              <th>Dad Genotype <span class="info-icon" title="Father's alleles (uppercase=dominant, lowercase=recessive)">ℹ️</span></th>
+              <th>Child Genotype <span class="info-icon" title="Resulting genotype from both parents' alleles">ℹ️</span></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="col-md-4">
+        <div class="sidebar">
+          <h2>Possible Phenotypes</h2>
+          <ul></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Confetti & Libraries -->
+  <script>window.confetti = window.confetti || function(){};</script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
+
+  <!-- Main Application Script -->
+  <script>
+    $(function () { $('[data-toggle="tooltip"]').tooltip(); });
+    document.addEventListener('DOMContentLoaded', () => {
+      const TRAITS = [
+        { name: 'Eyes', gene: 'E', phenos: ['2 large eyes','1 large eye'] },
+        { name: 'Nostrils', gene: 'N', phenos: ['nostrils not visible','nostrils visible'] },
+        { name: 'Ears', gene: 'P', phenos: ['ears not visible','ears visible'] },
+        { name: 'Teeth', gene: 'T', phenos: ['no teeth','sharp teeth'] },
+        { name: 'Arms', gene: 'A', phenos: ['2 skinny arms','4 skinny arms'] },
+        { name: 'Fingers', gene: 'F', phenos: ['5 long fingers','3 long fingers'] },
+        { name: 'Legs', gene: 'L', phenos: ['2 long legs','4 long legs'] },
+        { name: 'Toes', gene: 'W', phenos: ['3 long toes','2 long toes'] },
+        { name: 'Skin Color', gene: 'S', phenos: ['solid skin','dotted skin'] },
+        { name: 'Head', gene: 'H', phenos: ['bald head','3 hairs on head'] }
+      ];
+      const tbody = document.querySelector('#geneticsTable tbody');
+      const sidebarUl = document.querySelector('.sidebar ul');
+      const flipResult = document.getElementById('flipResult');
+      const scoreEl = document.getElementById('score');
+      const flipBtn = document.getElementById('flipBtn');
+      const replayBtn = document.getElementById('replayBtn');
+      let currentIndex = 0, score = 0, timer;
+
+      // Build table & sidebar
+      TRAITS.forEach((t,i) => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${t.name}</td>
+          <td>${t.gene.toUpperCase()}${t.gene.toLowerCase()}</td>
+          <td>${t.gene.toUpperCase()}${t.gene.toLowerCase()}</td>
+          <td class="child-gen"></td>
+        `;
+        tbody.appendChild(tr);
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${t.name}</strong><br>
+          ${t.gene.toUpperCase()} = ${t.phenos[0]}<br>
+          ${t.gene.toLowerCase()} = ${t.phenos[1]}`;
+        sidebarUl.appendChild(li);
+      });
+
+      function flipCoin(gene) {
+        const heads = Math.random()<0.5;
+        return { flip: heads?'Heads':'Tails', allele: heads?gene.toUpperCase():gene.toLowerCase() };
+      }
+
+      function addPhenotypeSelectors() {
+        const headerRow = document.querySelector('#geneticsTable thead tr');
+        headerRow.insertAdjacentHTML('beforeend','<th>Choose Phenotype <span class="info-icon" title="Select phenotype based on the genotype">ℹ️</span></th>');
+        document.querySelectorAll('#geneticsTable tbody tr').forEach((tr,i) => {
+          const td = document.createElement('td');
+          const select = document.createElement('select'); select.className='form-control';
+          select.innerHTML = `<option>-- Select --</option>${TRAITS[i].phenos.map(p=>`<option>${p}</option>`).join('')}`;
+          const fb = document.createElement('div'); fb.className='feedback'; td.append(select,fb); tr.appendChild(td);
+          select.addEventListener('change', () => {
+            const chosen = select.value;
+            const geno = tr.querySelector('.child-gen').textContent;
+            const correct = /[A-Z]/.test(geno) ? TRAITS[i].phenos[0] : TRAITS[i].phenos[1];
+            if (chosen === correct) {
+              fb.textContent = '✔️ Correct!';
+              fb.className = 'feedback correct';
+              score++;
+              scoreEl.textContent = `Score: ${score}`;
+              confetti();
+            } else {
+              fb.textContent = `❌ Incorrect. Correct: ${correct}`;
+              fb.className = 'feedback incorrect';
+            }
+            select.disabled = true;
+          });
+        });
+      }
+
+      flipBtn.addEventListener('click', ()=>{
+        const rows=tbody.querySelectorAll('tr');
+        if(currentIndex<rows.length) {
+          const t=TRAITS[currentIndex]; const m=flipCoin(t.gene), d=flipCoin(t.gene);
+          const child=[m.allele,d.allele].sort().reverse().join('');
+          const tr=rows[currentIndex]; tr.querySelector('.child-gen').textContent=child;
+          clearTimeout(timer); flipResult.textContent=`${t.name}: Mom ${m.flip}(${m.allele}), Dad ${d.flip}(${d.allele}) → ${child}`;
+          flipResult.style.display='block'; timer=setTimeout(()=>flipResult.style.display='none',3000);
+          currentIndex++;
+          if(currentIndex===rows.length) {
+            addPhenotypeSelectors(); flipBtn.disabled=true; replayBtn.disabled=false;
+          }
+        }
+      });
+
+      replayBtn.addEventListener('click', ()=>{
+        currentIndex=0; score=0; scoreEl.textContent='Score: 0';
+        flipResult.style.display='none';
+        const headerRow = document.querySelector('#geneticsTable thead tr');
+        if(headerRow.cells.length>4) headerRow.deleteCell(-1);
+        document.querySelectorAll('#geneticsTable tbody tr').forEach(tr=>{
+          tr.querySelector('.child-gen').textContent='';
+          if(tr.cells.length>4) tr.deleteCell(-1);
+        });
+        flipBtn.disabled=false; replayBtn.disabled=true;
+      });
+    });
+  </script>
+
+  <footer class="text-center mt-4">
+    <p>Activity adapted from <a href="https://www.weareteachers.com/genetics-baby-aliens/" target="_blank">WeAreTeachers - Genetics Baby Aliens</a></p>
+  </footer>
+</body>
+</html>
